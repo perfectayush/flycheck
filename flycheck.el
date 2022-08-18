@@ -277,6 +277,7 @@ attention to case differences."
     slim
     slim-lint
     sql-sqlint
+    sql-sqlfluff
     systemd-analyze
     tcl-nagelfar
     terraform
@@ -12129,6 +12130,36 @@ See URL `https://github.com/purcell/sqlint'."
                                  (one-or-more "  ")
                                  (one-or-more not-newline)))
           line-end))
+  :modes (sql-mode))
+
+
+(flycheck-def-config-file-var flycheck-sql-sqlfluff-config
+    sql-sqlfluff ".sqlfluff"
+  :package-version '(flycheck . "33"))
+
+(flycheck-def-args-var flycheck-sql-sqlfluff-args sql-sqlfluff
+  :package-version '(flycheck . "33"))
+
+(flycheck-define-checker sql-sqlfluff
+  "A modular sql linter supporting many dialects
+
+See URL `https://github.com/sqlfluff/sqlfluff'."
+  :command ("sqlfluff" "lint"
+            "--nofail"
+            "--logger" "linter"
+            "--format" "github-annotation-native"
+            "--disable_progress_bar"
+            (config-file "--config" flycheck-sql-sqlfluff-config)
+            (eval flycheck-sql-sqlfluff-args)
+            "-")
+  :standard-input t
+  :error-patterns
+  ((info line-start
+         "::notice title=SQLFluff,file=stdin,line=" line
+         ",col=" column
+         "::" (id (one-or-more alnum))
+         ": " (message)
+         line-end))
   :modes (sql-mode))
 
 (flycheck-define-checker systemd-analyze
